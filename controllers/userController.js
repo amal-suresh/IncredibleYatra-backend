@@ -22,12 +22,15 @@ const loginUser = async (req, res) => {
             return res.status(404).json({ message: "Invalid email or password" });
         }
 
-        // Check password
+        if (user.isBlocked) {
+            return res.status(403).json({ message: "Your account has been blocked. Please contact support." });
+        }
+
+       
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
             return res.status(400).json({ message: "Invalid email or password" });
         }
-
         if (user.role === "admin") {
             const token = generateToken(user._id, "admin");
             return res.status(200).json({
@@ -50,14 +53,13 @@ const loginUser = async (req, res) => {
                 token,
             });
         }
-
-        // Unknown role fallback
         res.status(400).json({ message: "Invalid user role" });
     } catch (error) {
         console.error("Login Error:", error.message);
         res.status(500).json({ message: "Server error" });
     }
 };
+
 
 
 
